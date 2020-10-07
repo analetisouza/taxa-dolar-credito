@@ -30,3 +30,6 @@ Passos a seguir:
 [4] Juntar o df historico com o principal
 [5] Apagar a coluna historicoTaxas do df principal
 '''
+
+df_linha = pd.DataFrame(hist_bradesco.at[0,'historicoTaxas'], index = [0])
+print(df_linha)
