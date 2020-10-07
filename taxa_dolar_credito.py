@@ -15,25 +15,18 @@ source_nubank = "https://dadosabertos.nubank.com.br/taxasCartoes/itens"
 data_itau = json.loads(source_itau.text)
 #data_nubank = json.loads(source_nubank.text)
 
-print(data_itau.keys)
-
-flat_itau = (flatten(d) for d in data_itau)
-df_itau = pd.DataFrame(flat_itau)
-
-'''
 #print(data_bradesco)
 
 df_bradesco = pd.read_json(source_bradesco)
 print(df_bradesco)
 hist_bradesco = df_bradesco.iloc[:,[2]]
 print(type(hist_bradesco))
-hist_bradesco = hist_bradesco.to_dict()
-hist_bradesco = json.JSONDecoder(hist_bradesco)
-print(hist_bradesco)
 
-#df_itau = pd.json_normalize(data_itau, max_level = 15)
-#print(df_itau)
 '''
-
-df_nubank = pd.read_json(source_nubank)
-print(df_itau)
+Passos a seguir:
+[1] Pegar a string json de cada linha da coluna historicoTaxas do dataframe
+[2] Ler a linha json pd.read_json(linha) e tranformar num dataframe de 4 colunas e 1 linha
+[3] Juntar todos os dataframes num df só (possivelmente já fazer isso linha a linha logo apos a leitura)
+[4] Juntar o df historico com o principal
+[5] Apagar a coluna historicoTaxas do df principal
+'''
