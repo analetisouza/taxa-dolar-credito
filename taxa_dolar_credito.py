@@ -1,4 +1,6 @@
 import pandas as pd
+import requests
+import json
 import ssl 
 
 try:
@@ -25,23 +27,44 @@ Passos a seguir:
 
 
 def prepara_dataframe(source):
-    df_source = pd.read_json(source)
-    print(df_source)
-    hist_source = df_source.iloc[:,[2]]
 
-    df_historico = pd.DataFrame()
+    if source == source_itau: 
+        df_source = json.loads(requests.get(source_itau).text)
+        df_source = pd.DataFrame(df_source[0])
+        df_source = df_source.at[0, 'itens']
+        df_emissor = pd.DataFrame(df_source['emissor'], index = [0])
+        df_historico = pd.DataFrame(df_source['historicoTaxas'])
 
-    for linha in range(hist_source.size):
-        df_linha = pd.DataFrame(hist_source.at[linha,'historicoTaxas'], index = [0])
-        df_historico = pd.concat([df_historico, df_linha], ignore_index = True)
+        df_linha = pd.DataFrame()
 
-    df_source = pd.concat([df_source, df_historico], axis = 1)
-    df_source = df_source.drop(columns = ['emissorCnpj', 'historicoTaxas', 'taxaDivulgacaoDataHora'])
+        for linha in range(df_historico.shape[0]):
+            df_linha = pd.concat([df_linha, df_emissor], ignore_index = True)
+            df_source = df_linha
+
+        df_source = pd.concat([df_source, df_historico], axis = 1)
+        df_source = df_source.drop(columns = ['emissorCnpj', 'taxaDivulgacaoDataHora'])
+
+    else:
+        df_source = pd.read_json(source)
+        hist_source = df_source.iloc[:,[2]]
+
+        df_historico = pd.DataFrame()
+
+        for linha in range(hist_source.shape[0]):
+            df_linha = pd.DataFrame(hist_source.at[linha,'historicoTaxas'], index = [0])
+            df_historico = pd.concat([df_historico, df_linha], ignore_index = True)
+
+        df_source = pd.concat([df_source, df_historico], axis = 1)
+        df_source = df_source.drop(columns = ['emissorCnpj', 'historicoTaxas', 'taxaDivulgacaoDataHora'])
     return df_source
 
-'''
+
 df_bradesco = prepara_dataframe(source_bradesco)
 df_caixa = prepara_dataframe(source_caixa)
 df_itau = prepara_dataframe(source_itau)
 df_nubank = prepara_dataframe(source_nubank)
-'''
+
+print(df_bradesco)
+print(df_caixa)
+print(df_itau)
+print(df_nubank)
