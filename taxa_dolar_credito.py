@@ -15,7 +15,6 @@ source_bradesco = "https://proxy.api.prebanco.com.br/bradesco/dadosabertos/taxas
 source_itau = "https://api.itau.com.br/dadosabertos/taxasCartoes/taxas/itens"
 source_nubank = "https://dadosabertos.nubank.com.br/taxasCartoes/itens"
 
-
 '''
 Passos a seguir:
 *** DONE *** [1] Pegar a string json de cada linha da coluna historicoTaxas do dataframe
@@ -63,6 +62,21 @@ df_bradesco = prepara_dataframe(source_bradesco)
 df_caixa = prepara_dataframe(source_caixa)
 df_itau = prepara_dataframe(source_itau)
 df_nubank = prepara_dataframe(source_nubank)
+
+'''
+Próximos passos:
+*** DONE *** [1] Inverter a ordem do Bradesco
+*** DONE *** [2] Remover os valores de débito do Bradesco
+[3] Alterar 'CREDITO' para 'Crédito" no df da Caixa
+[4] Alterar 'CAIXA ECONOMICA FEDERAL'
+[5] Verificar se os dfs começam na mesma data
+[6] Diminuir o dataset para os últimos 90, 60 ou 30 dias
+'''
+
+df_bradesco = df_bradesco.drop(df_bradesco.loc[df_bradesco['taxaTipoGasto'] == 'Débito à conta'].index)
+df_bradesco = df_bradesco.iloc[::-1].reset_index(drop=True)
+
+df_caixa = df_caixa.replace({'CAIXA ECONOMICA FEDERAL' : 'Caixa Economica Federal', 'CREDITO' : 'Crédito'})
 
 print(df_bradesco)
 print(df_caixa)
