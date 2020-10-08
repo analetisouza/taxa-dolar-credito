@@ -14,7 +14,7 @@ source_bradesco = "https://proxy.api.prebanco.com.br/bradesco/dadosabertos/taxas
 source_caixa = "https://api.caixa.gov.br:8443/dadosabertos/taxasCartoes/1.2.0/itens"
 source_itau = "https://api.itau.com.br/dadosabertos/taxasCartoes/taxas/itens"
 source_nubank = "https://dadosabertos.nubank.com.br/taxasCartoes/itens"
-source_compra = "https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoDolarPeriodo(dataInicial=@dataInicial,dataFinalCotacao=@dataFinalCotacao)?@dataInicial='06%2F08%2F2020'&@dataFinalCotacao='10%2F18%2F2020'&$top=10000&$format=json&$select=cotacaoCompra,cotacaoVenda,dataHoraCotacao"
+source_cotacao = "https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoDolarPeriodo(dataInicial=@dataInicial,dataFinalCotacao=@dataFinalCotacao)?@dataInicial='06%2F08%2F2020'&@dataFinalCotacao='10%2F18%2F2020'&$top=10000&$format=json&$select=cotacaoCompra,cotacaoVenda,dataHoraCotacao"
 
 inicio_analise =  pd.to_datetime("2020-10-05")
 periodo_analise = 30
@@ -53,7 +53,7 @@ def prepara_dataframe(source):
         df_source = pd.concat([df_source, df_historico], axis = 1)
         df_source = df_source.drop(columns = ['emissorCnpj', 'taxaDivulgacaoDataHora'])
 
-    elif source == source_compra:
+    elif source == source_cotacao:
         df_source = pd.read_json(source)
         hist_source = df_source.iloc[:,[1]]
         df_historico = pd.DataFrame()
@@ -83,7 +83,7 @@ df_bradesco = prepara_dataframe(source_bradesco)
 df_caixa = prepara_dataframe(source_caixa)
 df_itau = prepara_dataframe(source_itau)
 df_nubank = prepara_dataframe(source_nubank)
-df_compra = prepara_dataframe(source_compra)
+df_cotacao = prepara_dataframe(source_cotacao)
 
 '''
 Próximos passos:
@@ -92,49 +92,42 @@ Próximos passos:
 *** DONE *** [3] Alterar 'CREDITO' para 'Crédito" no df da Caixa
 *** DONE *** [4] Alterar 'CAIXA ECONOMICA FEDERAL'
 [5] Excluir os dias não úteis dos dfs do Itaú e Nubank
-[6] Verificar se os dfs começam na mesma data
+*** DONE *** [6] Verificar se os dfs começam na mesma data
 [7] Diminuir o dataset para os últimos 90, 60 ou 30 dias
 '''
-def altera_data_inicio(df, inicio):
+def altera_data_inicio(df, df_data, inicio):
 
     for linha in range(df.shape[0]):
 
-        #if (df.loc[linha] == df.columns).all():
-           # continue
-        print(linha)
-        print(inicio)
-        linha_atual = df.at[linha, 'taxaData']
-        print(type(linha))
-        if linha_atual == inicio:
+        if df_data[linha] == inicio:
             return df
-        else:
-            df = df.drop(df.index[linha])
 
-    return df
+        else:
+            df = df.drop(linha)
 
 df_bradesco = df_bradesco.drop(df_bradesco.loc[df_bradesco['taxaTipoGasto'] == 'Débito à conta'].index)
 df_bradesco = df_bradesco.iloc[::-1].reset_index(drop = True)
-df_compra = df_compra.iloc[::-1].reset_index(drop = True)
+df_cotacao = df_cotacao.iloc[::-1].reset_index(drop = True)
+
+df_bradesco = altera_data_inicio(df_bradesco, df_bradesco["taxaData"], inicio_analise)
+df_caixa = altera_data_inicio(df_caixa, df_caixa["taxaData"], inicio_analise)
+df_itau = altera_data_inicio(df_itau, df_itau["taxaData"], inicio_analise)
+df_nubank = altera_data_inicio(df_nubank, df_nubank["taxaData"], inicio_analise)
+df_cotacao = altera_data_inicio(df_cotacao, df_cotacao["dataHoraCotacao"], inicio_analise)
+
+
+df_bradesco = df_bradesco.reset_index(drop = True)
+df_caixa = df_caixa.reset_index(drop = True)
+df_itau = df_itau.reset_index(drop = True)
+df_nubank = df_nubank.reset_index(drop = True)
+df_cotacao = df_cotacao.reset_index(drop = True)
 
 
 df_caixa = df_caixa.replace({'CAIXA ECONOMICA FEDERAL' : 'Caixa Economica Federal', 'CREDITO' : 'Crédito'})
 
-print(df_bradesco)
-print(df_caixa)
-print(df_itau)
-print(df_nubank)
-print(df_compra)
-
-
-df_bradesco = altera_data_inicio(df_bradesco, inicio_analise)
-print(df_bradesco)
-df_caixa = altera_data_inicio(df_caixa, inicio_analise)
-df_itau = altera_data_inicio(df_itau, inicio_analise)
-df_nubank = altera_data_inicio(df_nubank, inicio_analise)
-df_compra = altera_data_inicio(df_compra, inicio_analise)
 
 print(df_bradesco)
 print(df_caixa)
 print(df_itau)
 print(df_nubank)
-print(df_compra)
+print(df_cotacao)
