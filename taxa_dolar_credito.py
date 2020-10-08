@@ -33,7 +33,6 @@ Passos a seguir:
 *** DONE *** [5] Apagar as colunas emissorCnpj, historicoTaxas e taxaDivulgacaoDataHora do df principal
 '''
 
-
 def prepara_dataframe(source):
 
     df_linha = pd.DataFrame()
@@ -78,7 +77,6 @@ def prepara_dataframe(source):
         df_source = df_source.drop(columns = ['emissorCnpj', 'historicoTaxas', 'taxaDivulgacaoDataHora'])
     return df_source
 
-
 df_bradesco = prepara_dataframe(source_bradesco)
 df_caixa = prepara_dataframe(source_caixa)
 df_itau = prepara_dataframe(source_itau)
@@ -91,10 +89,11 @@ Próximos passos:
 *** DONE *** [2] Remover os valores de débito do Bradesco
 *** DONE *** [3] Alterar 'CREDITO' para 'Crédito" no df da Caixa
 *** DONE *** [4] Alterar 'CAIXA ECONOMICA FEDERAL'
-[5] Excluir os dias não úteis dos dfs do Itaú e Nubank
+*** DONE *** [5] Excluir os dias não úteis dos dfs do Itaú e Nubank
 *** DONE *** [6] Verificar se os dfs começam na mesma data
-[7] Diminuir o dataset para os últimos 90, 60 ou 30 dias
+*** DONE *** [7] Diminuir o dataset para os últimos 90, 60 ou 30 dias
 '''
+
 def altera_data_inicio(df, df_data, inicio):
 
     for linha in range(df.shape[0]):
@@ -105,9 +104,27 @@ def altera_data_inicio(df, df_data, inicio):
         else:
             df = df.drop(linha)
 
+def altera_dias_uteis(df, df_data):
+
+    quantidade_dias = len(dias_excluidos)
+    linha = 0
+
+    for contador in range(quantidade_dias):
+
+        while not df_data[linha] == dias_excluidos[contador]:
+            linha = linha + 1
+
+        df = df.drop(linha)
+        linha = linha + 1
+        
+    return df
+
 df_bradesco = df_bradesco.drop(df_bradesco.loc[df_bradesco['taxaTipoGasto'] == 'Débito à conta'].index)
 df_bradesco = df_bradesco.iloc[::-1].reset_index(drop = True)
 df_cotacao = df_cotacao.iloc[::-1].reset_index(drop = True)
+
+df_itau = altera_dias_uteis(df_itau, df_itau["taxaData"])
+df_nubank = altera_dias_uteis(df_nubank, df_nubank["taxaData"])
 
 df_bradesco = altera_data_inicio(df_bradesco, df_bradesco["taxaData"], inicio_analise)
 df_caixa = altera_data_inicio(df_caixa, df_caixa["taxaData"], inicio_analise)
@@ -115,16 +132,19 @@ df_itau = altera_data_inicio(df_itau, df_itau["taxaData"], inicio_analise)
 df_nubank = altera_data_inicio(df_nubank, df_nubank["taxaData"], inicio_analise)
 df_cotacao = altera_data_inicio(df_cotacao, df_cotacao["dataHoraCotacao"], inicio_analise)
 
-
 df_bradesco = df_bradesco.reset_index(drop = True)
 df_caixa = df_caixa.reset_index(drop = True)
 df_itau = df_itau.reset_index(drop = True)
 df_nubank = df_nubank.reset_index(drop = True)
 df_cotacao = df_cotacao.reset_index(drop = True)
 
-
 df_caixa = df_caixa.replace({'CAIXA ECONOMICA FEDERAL' : 'Caixa Economica Federal', 'CREDITO' : 'Crédito'})
 
+df_bradesco = df_bradesco.loc[:29]
+df_caixa = df_caixa.loc[:29]
+df_itau = df_itau.loc[:29]
+df_nubank = df_nubank.loc[:29]
+df_cotacao = df_cotacao.loc[:29]
 
 print(df_bradesco)
 print(df_caixa)
