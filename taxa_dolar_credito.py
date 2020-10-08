@@ -14,6 +14,7 @@ source_caixa = "https://api.caixa.gov.br:8443/dadosabertos/taxasCartoes/1.2.0/it
 source_bradesco = "https://proxy.api.prebanco.com.br/bradesco/dadosabertos/taxasCartoes/itens"
 source_itau = "https://api.itau.com.br/dadosabertos/taxasCartoes/taxas/itens"
 source_nubank = "https://dadosabertos.nubank.com.br/taxasCartoes/itens"
+source_compra = "https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoDolarPeriodo(dataInicial=@dataInicial,dataFinalCotacao=@dataFinalCotacao)?@dataInicial='06%2F08%2F2020'&@dataFinalCotacao='10%2F08%2F2020'&$top=10000&$format=json&$select=cotacaoCompra,dataHoraCotacao"
 
 '''
 Passos a seguir:
@@ -27,6 +28,8 @@ Passos a seguir:
 
 def prepara_dataframe(source):
 
+    df_linha = pd.DataFrame()
+
     if source == source_itau: 
         df_source = json.loads(requests.get(source_itau).text)
         df_source = pd.DataFrame(df_source[0])
@@ -34,23 +37,33 @@ def prepara_dataframe(source):
         df_emissor = pd.DataFrame(df_source['emissor'], index = [0])
         df_historico = pd.DataFrame(df_source['historicoTaxas'])
 
-        df_linha = pd.DataFrame()
-
         for linha in range(df_historico.shape[0]):
             df_linha = pd.concat([df_linha, df_emissor], ignore_index = True)
+            df_historico['taxaData'] = pd.to_datetime(df_historico['taxaData'])
             df_source = df_linha
 
         df_source = pd.concat([df_source, df_historico], axis = 1)
         df_source = df_source.drop(columns = ['emissorCnpj', 'taxaDivulgacaoDataHora'])
 
+    elif source == source_compra:
+        df_source = pd.read_json(source)
+        hist_source = df_source.iloc[:,[1]]
+        df_historico = pd.DataFrame()
+
+        for linha in range(hist_source.shape[0]):
+            df_linha = pd.DataFrame(hist_source.at[linha,'value'], index = [0])
+            df_linha['dataHoraCotacao'] = pd.to_datetime(df_linha['dataHoraCotacao']).dt.date
+            df_historico = pd.concat([df_historico, df_linha], ignore_index = True)
+            df_source = df_historico
+
     else:
         df_source = pd.read_json(source)
         hist_source = df_source.iloc[:,[2]]
-
         df_historico = pd.DataFrame()
 
         for linha in range(hist_source.shape[0]):
             df_linha = pd.DataFrame(hist_source.at[linha,'historicoTaxas'], index = [0])
+            df_linha['taxaData'] = pd.to_datetime(df_linha['taxaData'])
             df_historico = pd.concat([df_historico, df_linha], ignore_index = True)
 
         df_source = pd.concat([df_source, df_historico], axis = 1)
@@ -62,6 +75,7 @@ df_bradesco = prepara_dataframe(source_bradesco)
 df_caixa = prepara_dataframe(source_caixa)
 df_itau = prepara_dataframe(source_itau)
 df_nubank = prepara_dataframe(source_nubank)
+df_compra = prepara_dataframe(source_compra)
 
 '''
 Próximos passos:
@@ -76,6 +90,7 @@ Próximos passos:
 
 df_bradesco = df_bradesco.drop(df_bradesco.loc[df_bradesco['taxaTipoGasto'] == 'Débito à conta'].index)
 df_bradesco = df_bradesco.iloc[::-1].reset_index(drop=True)
+df_compra = df_compra.iloc[::-1].reset_index(drop=True)
 
 df_caixa = df_caixa.replace({'CAIXA ECONOMICA FEDERAL' : 'Caixa Economica Federal', 'CREDITO' : 'Crédito'})
 
@@ -83,3 +98,4 @@ print(df_bradesco)
 print(df_caixa)
 print(df_itau)
 print(df_nubank)
+print(df_compra)
