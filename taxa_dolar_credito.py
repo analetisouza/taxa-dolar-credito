@@ -10,11 +10,19 @@ except AttributeError:
 else:
     ssl._create_default_https_context = _create_unverified_https_context
 
-source_caixa = "https://api.caixa.gov.br:8443/dadosabertos/taxasCartoes/1.2.0/itens"
 source_bradesco = "https://proxy.api.prebanco.com.br/bradesco/dadosabertos/taxasCartoes/itens"
+source_caixa = "https://api.caixa.gov.br:8443/dadosabertos/taxasCartoes/1.2.0/itens"
 source_itau = "https://api.itau.com.br/dadosabertos/taxasCartoes/taxas/itens"
 source_nubank = "https://dadosabertos.nubank.com.br/taxasCartoes/itens"
-source_compra = "https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoDolarPeriodo(dataInicial=@dataInicial,dataFinalCotacao=@dataFinalCotacao)?@dataInicial='06%2F08%2F2020'&@dataFinalCotacao='10%2F08%2F2020'&$top=10000&$format=json&$select=cotacaoCompra,dataHoraCotacao"
+source_compra = "https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoDolarPeriodo(dataInicial=@dataInicial,dataFinalCotacao=@dataFinalCotacao)?@dataInicial='06%2F08%2F2020'&@dataFinalCotacao='10%2F18%2F2020'&$top=10000&$format=json&$select=cotacaoCompra,cotacaoVenda,dataHoraCotacao"
+
+inicio_analise =  pd.to_datetime("2020-10-05")
+periodo_analise = 30
+dias_excluidos = ["2020-10-04", "2020-10-03", "2020-09-27", "2020-09-26", "2020-09-20", "2020-09-19", 
+                "2020-09-13", "2020-09-12", "2020-09-07", "2020-09-06", "2020-09-05", "2020-08-30", "2020-08-29"]
+
+for i in range(len(dias_excluidos)):
+    dias_excluidos[i] = pd.to_datetime(dias_excluidos[i])
 
 '''
 Passos a seguir:
@@ -87,12 +95,43 @@ Próximos passos:
 [6] Verificar se os dfs começam na mesma data
 [7] Diminuir o dataset para os últimos 90, 60 ou 30 dias
 '''
+def altera_data_inicio(df, inicio):
+
+    for linha in range(df.shape[0]):
+
+        #if (df.loc[linha] == df.columns).all():
+           # continue
+        print(linha)
+        print(inicio)
+        linha_atual = df.at[linha, 'taxaData']
+        print(type(linha))
+        if linha_atual == inicio:
+            return df
+        else:
+            df = df.drop(df.index[linha])
+
+    return df
 
 df_bradesco = df_bradesco.drop(df_bradesco.loc[df_bradesco['taxaTipoGasto'] == 'Débito à conta'].index)
-df_bradesco = df_bradesco.iloc[::-1].reset_index(drop=True)
-df_compra = df_compra.iloc[::-1].reset_index(drop=True)
+df_bradesco = df_bradesco.iloc[::-1].reset_index(drop = True)
+df_compra = df_compra.iloc[::-1].reset_index(drop = True)
+
 
 df_caixa = df_caixa.replace({'CAIXA ECONOMICA FEDERAL' : 'Caixa Economica Federal', 'CREDITO' : 'Crédito'})
+
+print(df_bradesco)
+print(df_caixa)
+print(df_itau)
+print(df_nubank)
+print(df_compra)
+
+
+df_bradesco = altera_data_inicio(df_bradesco, inicio_analise)
+print(df_bradesco)
+df_caixa = altera_data_inicio(df_caixa, inicio_analise)
+df_itau = altera_data_inicio(df_itau, inicio_analise)
+df_nubank = altera_data_inicio(df_nubank, inicio_analise)
+df_compra = altera_data_inicio(df_compra, inicio_analise)
 
 print(df_bradesco)
 print(df_caixa)
