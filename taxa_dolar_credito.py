@@ -1,25 +1,18 @@
-import json
-import requests
-from pprint import pprint
 import pandas as pd
-from flatten_json import flatten
+import ssl 
 
+try:
+    _create_unverified_https_context = ssl._create_unverified_context
+except AttributeError:
+    pass
+else:
+    ssl._create_default_https_context = _create_unverified_https_context
 
-#source_caixa = requests.get("https://api.caixa.gov.br:8443/dadosabertos/taxasCartoes/1.2.0/itens")
+source_caixa = "https://api.caixa.gov.br:8443/dadosabertos/taxasCartoes/1.2.0/itens"
 source_bradesco = "https://proxy.api.prebanco.com.br/bradesco/dadosabertos/taxasCartoes/itens"
-source_itau = requests.get("https://api.itau.com.br/dadosabertos/taxasCartoes/taxas/itens")
+source_itau = "https://api.itau.com.br/dadosabertos/taxasCartoes/taxas/itens"
 source_nubank = "https://dadosabertos.nubank.com.br/taxasCartoes/itens"
 
-#data_caixa = json.loads(source_caixa.text)
-#data_bradesco = json.loads(source_bradesco.text)
-data_itau = json.loads(source_itau.text)
-#data_nubank = json.loads(source_nubank.text)
-
-#print(data_bradesco)
-
-df_bradesco = pd.read_json(source_bradesco)
-hist_bradesco = df_bradesco.iloc[:,[2]]
-print(type(hist_bradesco))
 
 '''
 Passos a seguir:
@@ -30,12 +23,25 @@ Passos a seguir:
 *** DONE *** [5] Apagar as colunas emissorCnpj, historicoTaxas e taxaDivulgacaoDataHora do df principal
 '''
 
-df_historico = pd.DataFrame()
 
-for linha in range(hist_bradesco.size):
-    df_linha = pd.DataFrame(hist_bradesco.at[linha,'historicoTaxas'], index = [0])
-    df_historico = pd.concat([df_historico, df_linha], ignore_index = True)
+def prepara_dataframe(source):
+    df_source = pd.read_json(source)
+    print(df_source)
+    hist_source = df_source.iloc[:,[2]]
 
-df_bradesco = pd.concat([df_bradesco, df_historico], axis = 1)
-df_bradesco = df_bradesco.drop(columns = ['emissorCnpj', 'historicoTaxas', 'taxaDivulgacaoDataHora'])
-print(df_bradesco)
+    df_historico = pd.DataFrame()
+
+    for linha in range(hist_source.size):
+        df_linha = pd.DataFrame(hist_source.at[linha,'historicoTaxas'], index = [0])
+        df_historico = pd.concat([df_historico, df_linha], ignore_index = True)
+
+    df_source = pd.concat([df_source, df_historico], axis = 1)
+    df_source = df_source.drop(columns = ['emissorCnpj', 'historicoTaxas', 'taxaDivulgacaoDataHora'])
+    return df_source
+
+'''
+df_bradesco = prepara_dataframe(source_bradesco)
+df_caixa = prepara_dataframe(source_caixa)
+df_itau = prepara_dataframe(source_itau)
+df_nubank = prepara_dataframe(source_nubank)
+'''
