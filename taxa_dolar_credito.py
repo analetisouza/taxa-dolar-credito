@@ -67,10 +67,11 @@ df_nubank = prepara_dataframe(source_nubank)
 Próximos passos:
 *** DONE *** [1] Inverter a ordem do Bradesco
 *** DONE *** [2] Remover os valores de débito do Bradesco
-[3] Alterar 'CREDITO' para 'Crédito" no df da Caixa
-[4] Alterar 'CAIXA ECONOMICA FEDERAL'
-[5] Verificar se os dfs começam na mesma data
-[6] Diminuir o dataset para os últimos 90, 60 ou 30 dias
+*** DONE *** [3] Alterar 'CREDITO' para 'Crédito" no df da Caixa
+*** DONE *** [4] Alterar 'CAIXA ECONOMICA FEDERAL'
+[5] Excluir os dias não úteis dos dfs do Itaú e Nubank
+[6] Verificar se os dfs começam na mesma data
+[7] Diminuir o dataset para os últimos 90, 60 ou 30 dias
 '''
 
 df_bradesco = df_bradesco.drop(df_bradesco.loc[df_bradesco['taxaTipoGasto'] == 'Débito à conta'].index)
