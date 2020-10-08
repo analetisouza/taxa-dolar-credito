@@ -26,8 +26,8 @@ Passos a seguir:
 *** DONE *** [1] Pegar a string json de cada linha da coluna historicoTaxas do dataframe
 *** DONE *** [2] Ler a linha json pd.read_json(linha) e tranformar num dataframe de 4 colunas e 1 linha
 *** DONE *** [3] Juntar todos os dataframes num df só (possivelmente já fazer isso linha a linha logo apos a leitura)
-[4] Juntar o df historico com o principal
-[5] Apagar a coluna historicoTaxas do df principal
+*** DONE *** [4] Juntar o df historico com o principal
+*** DONE *** [5] Apagar as colunas emissorCnpj, historicoTaxas e taxaDivulgacaoDataHora do df principal
 '''
 
 df_historico = pd.DataFrame()
