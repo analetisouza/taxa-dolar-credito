@@ -1,4 +1,6 @@
 import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
 import requests
 import json
 import ssl 
@@ -146,8 +148,20 @@ df_itau = df_itau.loc[:29]
 df_nubank = df_nubank.loc[:29]
 df_cotacao = df_cotacao.loc[:29]
 
+'''
 print(df_bradesco)
 print(df_caixa)
 print(df_itau)
 print(df_nubank)
 print(df_cotacao)
+'''
+
+df_analise = pd.DataFrame()
+df_analise.insert(0, 'Data', df_cotacao["dataHoraCotacao"])
+df_analise.insert(1, 'Compra', df_cotacao["cotacaoCompra"])
+df_analise.insert(2, 'Bradesco', df_bradesco["taxaConversao"])
+df_analise.insert(3, 'Caixa', df_caixa["taxaConversao"])
+df_analise.insert(4, 'Itaú', df_itau["taxaConversao"])
+df_analise.insert(5, 'Nubank', df_nubank["taxaConversao"])
+
+print(df_analise)
